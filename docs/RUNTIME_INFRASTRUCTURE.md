@@ -6,6 +6,207 @@ This document covers resource requirements, scaling considerations, and infrastr
 
 ---
 
+## Quick Start: Local Development Mode
+
+**Goal**: Get MLTR running locally in <15 minutes with minimal resources.
+
+### Prerequisites
+- Python 3.11+
+- 8GB RAM (minimum)
+- 20GB free storage
+
+### Step 1: Clone and Setup Environment
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/mltr.git
+cd mltr
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Step 2: Basic Configuration
+
+```bash
+# Copy example configs
+cp .env.example .env
+cp configs/config.example.yaml configs/config.yaml
+
+# Edit .env with basic settings (no API keys needed for local dev)
+# Leave most fields empty - defaults work for local testing
+```
+
+### Step 3: Download Sample Data
+
+```bash
+# Option A: Use included example data (fastest)
+# Already available in tests/data/example_ohlcv.csv
+
+# Option B: Download real data (requires internet)
+python scripts/setup_data.py --universe NIFTY50 --days 90
+```
+
+### Step 4: Run Smoke Test
+
+```bash
+# Verify everything works
+bash scripts/run_example.sh
+
+# Should complete in ~30 seconds with all checks passing
+```
+
+### Step 5: Start Development
+
+```bash
+# Run unit tests
+pytest tests/unit/ -v
+
+# Start Jupyter for exploration
+jupyter lab
+
+# Or start coding your first feature!
+```
+
+### Local Mode Configuration
+
+For local development, use these simplified settings in `configs/config.yaml`:
+
+```yaml
+data:
+  market:
+    provider: "yfinance"  # Free, no API key needed
+    universe: "NIFTY50"   # Small universe for fast testing
+
+  news:
+    newsapi:
+      enabled: false  # Disable paid services
+    rss:
+      enabled: true   # Free RSS feeds only
+
+storage:
+  duckdb:
+    market_db: "data/db/market.db"  # Local file-based database
+
+llm:
+  model:
+    provider: "llamacpp"
+    # For local dev without GPU, use smaller model:
+    model_name: "qwen2.5-3b-instruct"  # 3B instead of 7B
+```
+
+### Local vs Production Comparison
+
+| Aspect | Local Dev | Production |
+|--------|-----------|------------|
+| **Data Source** | yfinance (free) | Paid APIs (Dhan, etc.) |
+| **Universe** | NIFTY50 (50 stocks) | NIFTY500 (500 stocks) |
+| **History** | 90 days | 2+ years |
+| **Database** | DuckDB (file-based) | DuckDB or TimescaleDB |
+| **LLM** | 3B model (CPU) | 7B model (GPU) |
+| **News** | RSS only | RSS + NewsAPI + Social |
+| **Streaming** | Polling (simple) | WebSocket/Kafka |
+| **Resources** | 8GB RAM, 4 cores | 32GB+ RAM, 16+ cores |
+| **Cost** | $0/month | ~$135-900/month (cloud) |
+
+### Local Development Tips
+
+**1. Use Smaller Datasets**
+```python
+# Instead of full history
+df = fetch_ohlcv("RELIANCE", start="2021-01-01", end="2024-11-03")
+
+# Use recent data only
+df = fetch_ohlcv("RELIANCE", start="2024-08-01", end="2024-11-03")
+```
+
+**2. Limit Symbol Universe**
+```python
+# Instead of NIFTY500
+watchlist = get_symbol_universe("NIFTY500")  # 500 stocks
+
+# Use smaller subset
+watchlist = ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK"]  # 5 stocks
+```
+
+**3. Use In-Memory Database for Tests**
+```python
+import duckdb
+
+# Instead of file-based
+conn = duckdb.connect("market.db")
+
+# Use in-memory
+conn = duckdb.connect(":memory:")
+```
+
+**4. Disable Heavy Features**
+```yaml
+# In config.yaml
+features:
+  sentiment:
+    enabled: false  # Disable until needed
+
+  llm:
+    enabled: false  # Use simple logic first
+```
+
+### Troubleshooting Local Setup
+
+**Issue**: `pip install` fails
+```bash
+# Solution: Update pip and use pinned versions
+pip install --upgrade pip
+pip install -r requirements-pinned.txt
+```
+
+**Issue**: Out of memory
+```bash
+# Solution: Reduce dataset size or increase swap
+# Reduce universe to NIFTY50 or NIFTY20
+```
+
+**Issue**: Tests failing
+```bash
+# Solution: Run smoke test first to identify missing dependencies
+bash scripts/run_example.sh
+
+# Then run specific test modules
+pytest tests/unit/data/ -v
+```
+
+**Issue**: DuckDB errors
+```bash
+# Solution: Delete database and recreate
+rm data/db/*.db
+python scripts/setup_data.py
+```
+
+### Next Steps After Local Setup
+
+1. **Explore the codebase**: Read `src/README.md` for module overview
+2. **Run examples**: Check `notebooks/` for Jupyter examples
+3. **Add a feature**: Follow `DEVELOPMENT_GUIDE.md`
+4. **Deploy locally**: Use Docker for isolated environment (see below)
+
+### Docker Quick Start (Alternative)
+
+```bash
+# Build image
+docker build -t mltr:latest .
+
+# Run container
+docker run -it -p 8000:8000 -p 8501:8501 mltr:latest
+
+# Access dashboard at http://localhost:8501
+```
+
+---
+
 ## Resource Requirements
 
 ### Development Environment

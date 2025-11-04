@@ -91,15 +91,46 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install bandit safety
+        pip install bandit safety detect-secrets
+
+    - name: Detect Secrets (FAIL ON DETECTION)
+      run: |
+        detect-secrets scan --baseline .secrets.baseline
+        detect-secrets audit .secrets.baseline
+      # This MUST fail the CI if secrets are found
+      continue-on-error: false
 
     - name: Run Bandit (Security Linter)
       run: |
-        bandit -r src/ -ll -f json -o bandit-report.json || true
+        bandit -r src/ -ll -f json -o bandit-report.json
         bandit -r src/ -ll
       continue-on-error: true
 
     - name: Check dependencies for vulnerabilities
       run: |
         safety check --json || true
+        safety check
       continue-on-error: true
+
+  smoke-test:
+    name: Smoke Test (Example Data)
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install core dependencies only
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas numpy pytest scikit-learn pyyaml
+
+    - name: Run smoke test script
+      run: |
+        bash scripts/run_example.sh
+      env:
+        PYTHONPATH: ${{ github.workspace }}
