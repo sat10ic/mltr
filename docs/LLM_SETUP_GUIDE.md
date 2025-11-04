@@ -13,8 +13,9 @@
 4. [Installation Guide](#installation-guide)
 5. [First Conversation](#first-conversation)
 6. [Using LLM for Trading](#using-llm-for-trading)
-7. [Advanced Features](#advanced-features)
-8. [Troubleshooting](#troubleshooting)
+7. [**NEW: Portfolio Monitoring with LLM**](#portfolio-monitoring-with-llm)
+8. [Advanced Features](#advanced-features)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -604,6 +605,497 @@ LLM: Reading "Advanced Momentum Strategies.pdf"...
      improved confidence scores (+8% average) and better risk
      profiles. Would you like to see the new signals?
 ```
+
+---
+
+## Portfolio Monitoring with LLM
+
+**NEW**: Use the LLM to monitor your actual portfolio and get personalized insights!
+
+### Why Use LLM for Portfolio Monitoring?
+
+The LLM is perfect for portfolio monitoring because it can:
+- 📊 Analyze your actual holdings in plain English
+- 🚨 Explain alerts in context of your situation
+- 💡 Suggest actions based on your trading history
+- 🤔 Answer "what if" questions about your portfolio
+
+### Basic Portfolio Questions
+
+**Check your holdings**:
+
+```
+You: What's in my portfolio right now?
+
+LLM: Let me check your holdings...
+
+     You currently hold 3 positions:
+
+     1. RELIANCE - 100 shares @ avg ₹2,450
+        Current: ₹2,520 (+2.9%, +₹7,000)
+        Status: 🟢 Profitable, trending up
+
+     2. TCS - 50 shares @ avg ₹3,200
+        Current: ₹3,180 (-0.6%, -₹1,000)
+        Status: 🟡 Small loss, watch closely
+
+     3. INFY - 200 shares @ avg ₹1,445
+        Current: ₹1,460 (+1.0%, +₹3,000)
+        Status: 🟢 Profitable, stable
+
+     Total Portfolio Value: ₹703,000
+     Total P&L: +₹9,000 (+1.3%)
+```
+
+**Check specific position**:
+
+```
+You: How is my RELIANCE position doing?
+
+LLM: Your RELIANCE position looks good:
+
+     Purchase: 100 shares @ ₹2,450 (3 weeks ago)
+     Current: ₹2,520
+     P&L: +₹7,000 (+2.9%)
+
+     Recent Performance:
+     - Up 1.2% this week
+     - Up 2.9% since purchase
+     - Outperforming NIFTY50 (+0.8%)
+
+     Technical Analysis:
+     - RSI: 58 (neutral, room to grow)
+     - MACD: Bullish crossover yesterday
+     - Volume: Normal
+
+     News Sentiment: Positive (+0.6)
+     - New retail expansion announced
+     - Strong quarterly results
+
+     Recommendation: 🟢 HOLD
+     No immediate concerns. Consider taking partial profits
+     if it reaches ₹2,600 (target resistance).
+```
+
+### Emergency Alert Analysis
+
+**Understanding alerts**:
+
+```
+You: I got an alert about TCS. What should I do?
+
+LLM: Let me check the alert...
+
+     🚨 ALERT DETAILS:
+     Symbol: TCS
+     Type: POSITION_LOSS
+     Severity: HIGH
+     Message: "TCS down 8.2% from your average price"
+
+     YOUR SITUATION:
+     - You bought TCS at ₹3,200
+     - Current price: ₹2,940 (-8.1%)
+     - Loss: ₹13,000 on 50 shares
+     - This represents 22% of your portfolio
+
+     WHAT HAPPENED:
+     - TCS reported weak Q4 earnings (1 hour ago)
+     - Revenue missed estimates by 3%
+     - Stock gapped down at market open
+     - High volume (2.5x normal) = panic selling
+
+     ANALYSIS:
+     - Your stop-loss (7%) was breached
+     - Fundamentals still strong (this is temporary)
+     - But short-term momentum is negative
+
+     OPTIONS:
+     1. 🚨 EXIT NOW: Cut losses at -8%, wait for clarity
+     2. 🎯 HOLD & AVERAGE: Buy more if it drops to ₹2,850
+     3. ⏰ WAIT: Set tight stop-loss at ₹2,900 (-9.4%)
+
+     MY RECOMMENDATION: Option 1 (EXIT NOW)
+     Reason: You're already past your stop-loss threshold.
+     The risk of further downside (10-15%) is higher than
+     the chance of quick recovery. Exit and reassess in a week.
+
+     Would you like me to calculate the tax implications of
+     selling now?
+```
+
+### Signal Execution Analysis
+
+**Did you follow the AI's advice?**
+
+```
+You: Show me which signals I followed this month
+
+LLM: Here's your signal execution analysis for November:
+
+     📊 SIGNAL SUMMARY:
+     Total signals: 18
+     Followed: 13 (72.2%)
+     Ignored: 5 (27.8%)
+
+     FOLLOWED SIGNALS (13):
+     ✅ Profitable: 9 (69.2%)
+     ❌ Loss: 4 (30.8%)
+     Average return: +3.1%
+
+     Examples:
+     1. RELIANCE BUY @ ₹2,450 → Result: +2.9% (holding)
+     2. WIPRO BUY @ ₹415 → Result: +6.2% (sold @ ₹441)
+     3. TATAMOTORS SELL @ ₹925 → Result: +4.1% (avoided drop)
+     ...
+
+     IGNORED SIGNALS (5):
+     😊 Good ignores: 3 (avoided losses)
+     😢 Missed opportunities: 2
+
+     Missed opportunities:
+     1. INFY BUY @ ₹1,445 → Went up 8.3% (you missed ₹24,030!)
+     2. HDFC BUY @ ₹1,625 → Went up 4.2% (you missed ₹6,825!)
+
+     💡 INSIGHTS:
+     - You're good at filtering bad signals (60% of ignores were correct)
+     - But you're also missing some good ones
+     - Your execution rate (72%) is in the ideal range
+     - Consider lowering confidence threshold from 0.7 to 0.65
+       to catch more profitable signals
+
+     Overall: You beat the AI by +0.8% with selective execution!
+```
+
+### Personalized Advice
+
+**Ask for customized recommendations**:
+
+```
+You: Should I add more tech stocks to my portfolio?
+
+LLM: Let me analyze your portfolio composition...
+
+     CURRENT ALLOCATION:
+     Tech (TCS, INFY): 64% (₹451,000)
+     Energy (RELIANCE): 36% (₹252,000)
+
+     ANALYSIS:
+     ⚠️ CONCENTRATION RISK: You're heavily weighted in tech (64%)
+
+     CONSIDERATIONS:
+     1. Sector Risk: If tech sector corrects, you lose heavily
+     2. Diversification: Ideal is <30% in any single sector
+     3. Your Holdings: Both TCS and INFY are IT services
+        (similar business models = correlated risk)
+
+     RECOMMENDATION: ⚠️ DO NOT add more tech right now
+
+     INSTEAD, CONSIDER:
+     1. Reduce tech to 40-50% (sell some TCS or INFY)
+     2. Add sectors:
+        - Financials: HDFC Bank, ICICI Bank (stable)
+        - Consumer: HUL, Asian Paints (defensive)
+        - Pharma: Sun Pharma, Dr. Reddy's (diversifier)
+
+     SUGGESTED TARGET:
+     Tech: 40% (₹280k) - Reduce by ₹171k
+     Energy: 25% (₹175k) - Reduce by ₹77k
+     Financials: 20% (₹140k) - Add new
+     Consumer: 10% (₹70k) - Add new
+     Pharma: 5% (₹35k) - Add new
+
+     This would give you better risk-adjusted returns while
+     maintaining growth potential.
+
+     Would you like me to suggest specific stocks for each sector?
+```
+
+### "What If" Scenarios
+
+**Test scenarios before committing**:
+
+```
+You: What if I sell TCS and buy INFY instead?
+
+LLM: Let me run that scenario...
+
+     CURRENT SCENARIO:
+     - TCS: 50 shares @ ₹3,180 = ₹159,000 (-₹1,000 loss)
+
+     PROPOSED SCENARIO:
+     - Sell TCS at ₹3,180 = ₹159,000 (minus ₹300 commission)
+     - Buy INFY at ₹1,460 = 108 shares (₹158,700 after commission)
+
+     COMPARISON (Based on 6-month backtest):
+
+     | Metric          | Keep TCS | Switch to INFY |
+     |-----------------|----------|----------------|
+     | Expected Return | +8.2%    | +12.5%         |
+     | Volatility      | 18%      | 22%            |
+     | Sharpe Ratio    | 0.45     | 0.57           |
+     | Max Drawdown    | -15%     | -19%           |
+
+     RISK ANALYSIS:
+     ✅ INFY has better growth potential (+4.3% higher return)
+     ✅ Better risk-adjusted returns (Sharpe: 0.57 vs 0.45)
+     ⚠️ Slightly higher volatility (4% more)
+     ⚠️ You'll realize your TCS loss for taxes
+
+     FUNDAMENTALS:
+     TCS:
+     - PE: 28.5 (slightly expensive)
+     - Revenue growth: 9% YoY
+     - Margin pressure from wage hikes
+
+     INFY:
+     - PE: 23.2 (more attractive)
+     - Revenue growth: 12% YoY
+     - Strong deal pipeline, better margins
+
+     TAX IMPACT:
+     - Short-term capital loss: ₹1,000
+     - Can offset against gains this year
+     - Tax saved: ~₹300 (assuming 30% bracket)
+
+     MY RECOMMENDATION: ✅ SWITCH
+
+     Reasons:
+     1. Better growth prospects
+     2. More attractive valuation
+     3. Tax loss harvesting benefit
+     4. Maintains tech exposure while upgrading position
+
+     Timing: Consider executing during market dip (2-3% down day)
+     to get better INFY entry price.
+```
+
+### Daily Portfolio Review
+
+**Morning routine**:
+
+```
+You: Review my portfolio for today
+
+LLM: Good morning! Here's your portfolio health check:
+
+     📊 OVERNIGHT CHANGES:
+     - RELIANCE: +0.8% (positive news on EV battery plant)
+     - TCS: -0.3% (weak global IT spending forecast)
+     - INFY: +1.2% (won major US banking deal)
+
+     Portfolio value: ₹708,450 (+0.8% overnight)
+
+     🚨 ALERTS:
+     - No critical alerts
+     - 1 notification: RELIANCE approaching resistance at ₹2,550
+
+     📰 RELEVANT NEWS:
+     1. IT sector: Weak demand from US banks (negative for TCS)
+     2. Reliance: Announced EV battery gigafactory (positive)
+     3. Market: NIFTY50 opened +0.5% (positive sentiment)
+
+     💡 TODAY'S SIGNALS:
+     1. HOLD RELIANCE (confidence: 82%)
+        - Near resistance, wait for breakout confirmation
+     2. WATCH TCS (confidence: 68%)
+        - Weak sector sentiment, consider reducing if drops <₹3,150
+     3. BUY MORE INFY (confidence: 76%)
+        - Strong momentum, major deal win
+        - Consider adding 50 shares if dips to ₹1,450
+
+     🎯 ACTION ITEMS:
+     1. Set alert for RELIANCE @ ₹2,550 (resistance)
+     2. Set stop-loss for TCS @ ₹3,150 (-1% from current)
+     3. Place limit order for INFY @ ₹1,450 (if it dips)
+
+     Overall sentiment: 🟢 POSITIVE
+     No immediate concerns. Your portfolio is well-positioned.
+
+     Any questions about today's plan?
+```
+
+### Learning from Your Behavior
+
+**LLM adapts to your style**:
+
+```
+You: Why do you keep suggesting high-risk trades? I'm conservative.
+
+LLM: You're right - let me adjust to your risk profile.
+
+     ANALYZING YOUR TRADING HISTORY:
+
+     Past 3 months:
+     - You followed 68% of signals
+     - You NEVER followed signals with confidence <70%
+     - You ignored all signals with potential loss >5%
+     - You prefer stocks with:
+       * PE ratio <25
+       * Market cap >₹50,000 crore
+       * Low volatility (beta <1.2)
+
+     ADJUSTING RECOMMENDATIONS:
+
+     Before (default settings):
+     - Show all signals
+     - Min confidence: 60%
+     - Include high-growth, high-risk stocks
+
+     After (customized for you):
+     - Filter out signals with confidence <70%
+     - Exclude stocks with volatility >25%
+     - Focus on large-cap, stable companies
+     - Max position size: 15% (conservative)
+     - Emphasize value over growth
+
+     UPDATED SIGNALS FOR YOU:
+     1. HDFC Bank (conservative, stable) - BUY
+     2. Asian Paints (low volatility) - BUY
+     3. HUL (defensive) - HOLD
+
+     (Previously suggested but now filtered out:)
+     - ZOMATO (too volatile for your profile)
+     - PAYTM (high-risk growth stock)
+     - Small-cap tech stocks
+
+     Your personalized model is now active!
+
+     Note: Your returns may be lower than aggressive traders,
+     but your risk is also much lower. That's okay!
+```
+
+### Configuration
+
+Enable LLM portfolio monitoring in `configs/config.yaml`:
+
+```yaml
+llm:
+  portfolio_monitoring:
+    enabled: true
+
+    # How often to generate portfolio summaries
+    daily_review:
+      enabled: true
+      time: "08:30"  # Before market open
+
+    # Alert integration
+    alerts:
+      explain_alerts: true  # LLM explains each alert
+      suggest_actions: true  # LLM suggests what to do
+      risk_analysis: true  # Analyze risk before suggesting
+
+    # Personalization
+    learn_from_behavior: true  # Adapt to your trading style
+    confidence_threshold_adjust: true  # Adjust based on execution rate
+    risk_profile: "moderate"  # conservative, moderate, aggressive
+
+    # Advanced
+    scenario_analysis: true  # Enable "what if" questions
+    tax_optimization: true  # Consider tax implications
+```
+
+### Example Conversations
+
+**Tax planning**:
+
+```
+You: I have ₹80,000 in short-term gains this year. How do I minimize taxes?
+
+LLM: Let me help with tax-loss harvesting...
+
+     YOUR SITUATION:
+     - Short-term capital gains: ₹80,000
+     - Tax rate: 15% (for stocks)
+     - Tax liability: ₹12,000
+
+     CURRENT LOSSES:
+     - TCS: -₹1,000 (short-term, can offset)
+
+     TAX SAVING OPPORTUNITY:
+     If you exit TCS now:
+     - Realized loss: ₹1,000
+     - Taxable gains: ₹80,000 - ₹1,000 = ₹79,000
+     - Tax saved: ₹150
+
+     ADDITIONAL OPPORTUNITIES:
+     Looking at your watchlist...
+
+     Stocks you were considering anyway:
+     - BAJAJFINSV: Currently -3% from your target entry
+       You could buy now, sell in 2 days for small loss,
+       then rebuy (wash sale harvesting)
+       Potential loss: ₹5,000 → Tax saved: ₹750
+
+     STRATEGY:
+     1. Exit TCS (you wanted to anyway) = ₹150 saved
+     2. Harvest ₹15,000 in losses before year-end = ₹2,250 saved
+     3. Total tax savings: ₹2,400
+     4. Net tax liability: ₹9,600 (down from ₹12,000)
+
+     Note: Ensure 30-day gap before repurchasing same stocks
+     to avoid wash sale issues.
+```
+
+**Risk management**:
+
+```
+You: My portfolio is down 12% today! Should I panic sell?
+
+LLM: Stay calm. Let me analyze this...
+
+     MARKET CONTEXT:
+     - NIFTY50: -4.2% (broad market selloff)
+     - Your portfolio: -12% (outperforming market by -7.8%)
+     - Cause: Global tech selloff, not India-specific
+
+     YOUR POSITIONS:
+     - RELIANCE: -3% (less than market = defensive)
+     - TCS: -18% (tech selloff, overbought correction)
+     - INFY: -15% (tech selloff)
+
+     HISTORICAL CONTEXT:
+     Last 10 times NIFTY dropped >4% in a day:
+     - 8 times (80%): Recovered within 1 week
+     - 2 times (20%): Continued downtrend (2020 crash, 2022 war)
+
+     CURRENT SITUATION:
+     - No India-specific bad news
+     - Corporate earnings are strong
+     - This looks like temporary panic, not structural issue
+
+     MY ANALYSIS: This is a BUYING OPPORTUNITY, not a sell signal
+
+     🛑 DO NOT PANIC SELL
+
+     RECOMMENDED ACTIONS:
+     1. ✅ HOLD all positions (don't lock in losses)
+     2. ✅ If you have cash, consider averaging down:
+        - TCS at ₹3,000 would improve your avg cost
+        - INFY at ₹1,400 is attractive
+     3. ✅ Set stop-losses at -20% (protect against true crash)
+     4. ⏰ Review tomorrow - if markets recover, you saved yourself
+
+     HISTORICAL LESSON:
+     March 2020: NIFTY dropped 30% in 2 weeks
+     - Those who sold: Locked in 30% loss
+     - Those who held: Recovered fully in 6 months
+     - Those who bought: Made 60%+ in next year
+
+     Your portfolio is quality stocks (TCS, INFY, RELIANCE).
+     They will recover. Patience is key.
+
+     Want me to send you calming statistics? 😊
+```
+
+### Key Takeaways
+
+1. **Natural conversation**: Ask LLM anything about your portfolio
+2. **Contextual alerts**: LLM explains alerts with full context
+3. **Personalized advice**: Adapts to your risk tolerance and trading style
+4. **Tax optimization**: Considers tax implications in recommendations
+5. **Behavioral learning**: Gets smarter by watching what you actually do
+
+**The LLM makes portfolio management feel like talking to a smart financial advisor!**
 
 ---
 

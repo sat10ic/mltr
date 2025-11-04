@@ -14,7 +14,8 @@
 5. [Training Your First Model](#training-your-first-model)
 6. [Understanding Model Performance](#understanding-model-performance)
 7. [When to Retrain](#when-to-retrain)
-8. [Common Mistakes to Avoid](#common-mistakes-to-avoid)
+8. [**NEW: Learning from Your Actual Trades**](#learning-from-your-actual-trades)
+9. [Common Mistakes to Avoid](#common-mistakes-to-avoid)
 
 ---
 
@@ -682,6 +683,289 @@ Sharpe: 1.35
 
 ✓ Improvement: +5% accuracy, +3.2% return
 ```
+
+---
+
+## Learning from Your Actual Trades
+
+**This is the most important part!** The AI learns from history, but YOUR actual trades are the ultimate test.
+
+### The Feedback Loop
+
+Think of it like a teacher-student relationship:
+
+```
+1. AI (Teacher): "I think RELIANCE will go up. Buy it."
+2. You (Student): "Okay, I'll try." [Buys RELIANCE]
+3. Reality (Exam): RELIANCE goes up 5%
+4. Feedback: "Teacher was right! Trust this advice more."
+
+OR
+
+3. Reality (Exam): RELIANCE goes down 3%
+4. Feedback: "Teacher was wrong! Trust this less."
+```
+
+### How to Enable Feedback
+
+**Step 1: Track Your Trades**
+
+```python
+from src.portfolio import PortfolioTracker
+from datetime import datetime
+
+tracker = PortfolioTracker(db_path='data/portfolio.db')
+
+# When AI suggests
+signal_id = tracker.record_signal(
+    symbol="RELIANCE",
+    signal_type="BUY",
+    price=2450.00,
+    timestamp=datetime.now(),
+    confidence=0.85  # AI is 85% confident
+)
+
+# When you execute
+tracker.record_trade(
+    symbol="RELIANCE",
+    trade_type="BUY",
+    price=2451.00,
+    quantity=100,
+    timestamp=datetime.now(),
+    signal_id=signal_id  # Links signal to trade
+)
+```
+
+**Step 2: Generate Feedback**
+
+After a few weeks:
+
+```bash
+# Analyze what worked and what didn't
+python scripts/generate_feedback.py --days 30
+```
+
+Output:
+```
+📊 Feedback Summary (Last 30 Days):
+
+Signals Generated: 24
+Signals Followed: 18 (75%)
+
+Results of Followed Signals:
+✅ Profitable: 13 (72.2%)
+❌ Loss: 5 (27.8%)
+Average Return: +3.4%
+
+Signals NOT Followed:
+✅ Would have profited: 2 (33%)
+❌ Would have lost: 4 (67%)
+
+💡 Insights:
+1. High-confidence signals (>0.8) worked 85% of the time → GOOD!
+2. Low-confidence signals (<0.6) worked only 55% of the time → FILTER THESE OUT
+3. You missed 2 profitable signals → Maybe lower confidence threshold?
+4. RSI + Volume combo: 90% success rate → EMPHASIZE THIS
+5. MACD alone: 50% success rate → DE-EMPHASIZE THIS
+```
+
+### What the AI Does with Feedback
+
+**Example 1: RSI Feature**
+
+Before feedback:
+```
+RSI feature weight: 0.3 (medium importance)
+```
+
+After 10 profitable RSI signals:
+```
+RSI feature weight: 0.6 (high importance)
+```
+
+**What this means**: AI now trusts RSI more and will give stronger buy/sell signals when RSI is extreme.
+
+**Example 2: MACD Feature**
+
+Before feedback:
+```
+MACD feature weight: 0.5 (high importance)
+```
+
+After 8 losing MACD signals:
+```
+MACD feature weight: 0.2 (low importance)
+```
+
+**What this means**: AI now trusts MACD less. It won't ignore it completely, but won't rely on it heavily.
+
+### The Four Types of Feedback
+
+#### Type 1: Followed Signal → Profit ✅
+
+```
+Signal: BUY RELIANCE at ₹2,450
+You: Bought at ₹2,451
+Result: Sold at ₹2,575 (+5.0%)
+
+Feedback to AI:
+- Features that triggered this signal: REINFORCE (increase weight)
+- Confidence was appropriate
+- Keep generating similar signals
+```
+
+**AI learns**: "When I see this pattern again, suggest it confidently!"
+
+#### Type 2: Followed Signal → Loss ❌
+
+```
+Signal: BUY TCS at ₹3,200
+You: Bought at ₹3,198
+Result: Sold at ₹3,100 (-3.1%)
+
+Feedback to AI:
+- Features that triggered this signal: WEAKEN (decrease weight)
+- Confidence was too high
+- Recalibrate model
+```
+
+**AI learns**: "This pattern doesn't work as well as I thought. Be more careful."
+
+#### Type 3: Ignored Signal → Would Have Profited 🤔
+
+```
+Signal: BUY INFY at ₹1,445 (confidence: 0.65)
+You: Didn't buy (confidence too low)
+Result: INFY went to ₹1,565 (+8.3%)
+
+Feedback to AI:
+- This signal was actually good, but you ignored it
+- Maybe lower the confidence threshold for user
+- OR make predictions more confident when pattern is strong
+```
+
+**AI learns**: "User is missing good opportunities. I should be clearer about high-quality signals."
+
+#### Type 4: Ignored Signal → Avoided Loss 😅
+
+```
+Signal: BUY WIPRO at ₹420 (confidence: 0.58)
+You: Didn't buy (felt risky)
+Result: WIPRO dropped to ₹390 (-7.1%)
+
+Feedback to AI:
+- Good thing you didn't follow this!
+- Low confidence was appropriate
+- Model might need retraining for this stock
+```
+
+**AI learns**: "My confidence calibration is working. Low confidence = risky signal."
+
+### Real Example: How AI Improved
+
+**Month 1 (No Feedback)**
+```
+Model performance:
+- Accuracy: 62%
+- Average return: +1.8%
+- Bad signals: Many false positives
+
+Problems:
+- Trusted sentiment too much (news is noisy)
+- Ignored volume (volume is important!)
+- Too many signals (low quality)
+```
+
+**Month 2 (After Feedback)**
+```
+Your trades showed:
+- 8/10 sentiment-based signals failed
+- 7/8 volume-based signals succeeded
+- Only 12/24 signals were actually profitable
+
+AI adjustments:
+- Reduced sentiment weight: 0.6 → 0.3
+- Increased volume weight: 0.4 → 0.7
+- Raised confidence threshold: 0.5 → 0.65
+```
+
+**Month 3 (Improved Model)**
+```
+New performance:
+- Accuracy: 71% (+9%)
+- Average return: +3.2% (+1.4%)
+- Signals per month: 18 (down from 24, but higher quality)
+
+Your results:
+- Followed 14/18 signals
+- Profitable: 11/14 (78.6%)
+- Portfolio up 4.5% vs market 2.1%
+```
+
+**THIS IS THE POWER OF FEEDBACK!**
+
+### Setting Up Automatic Feedback
+
+**Add to configs/config.yaml**:
+
+```yaml
+portfolio:
+  feedback:
+    enabled: true
+    frequency: weekly  # Run feedback analysis weekly
+    min_trades: 5  # Need at least 5 trades for feedback
+    lookback_days: 30  # Analyze last 30 days
+
+    # What to adjust based on feedback
+    auto_adjust:
+      feature_weights: true  # Let AI adjust feature importance
+      confidence_threshold: true  # Adjust based on your execution rate
+      signal_filters: true  # Filter out low-quality patterns
+```
+
+**Run feedback automatically**:
+
+```bash
+# Add to cron (Linux/Mac) or Task Scheduler (Windows)
+# Runs every Sunday at midnight
+0 0 * * 0 python scripts/generate_feedback.py --auto-adjust
+```
+
+### Monitoring Feedback Impact
+
+Dashboard shows feedback impact:
+
+```
+📊 ML Improvement Tracker
+
+Feature Weights (Before → After):
+RSI:        0.30 → 0.52  (+73%)  ✅
+Volume:     0.40 → 0.61  (+53%)  ✅
+MACD:       0.50 → 0.28  (-44%)  ⬇️
+Sentiment:  0.60 → 0.35  (-42%)  ⬇️
+Bollinger:  0.35 → 0.45  (+29%)  ↗️
+
+Performance Impact:
+Accuracy:   62% → 71%  (+14%)
+Return:     1.8% → 3.2%  (+78%)
+Sharpe:     0.85 → 1.21  (+42%)
+
+Your Execution:
+Signals followed: 75%
+Your return: +4.5%
+AI-only return: +3.2%
+You beat AI by: +1.3%  (Good judgment!)
+```
+
+### Key Takeaways
+
+1. **Track every trade**: Link signals to your actual executions
+2. **Generate feedback monthly**: Let AI learn from real results
+3. **Monitor improvements**: Check if accuracy/returns are increasing
+4. **Trust the process**: Takes 2-3 months to see significant improvement
+5. **Your judgment matters**: You might beat the AI by filtering bad signals!
+
+**The AI gets smarter by learning from YOUR decisions, not just historical data.**
 
 ---
 

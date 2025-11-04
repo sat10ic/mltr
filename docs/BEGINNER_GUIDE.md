@@ -13,8 +13,9 @@
 4. [First Time Setup](#first-time-setup)
 5. [Running the System](#running-the-system)
 6. [Understanding the Features](#understanding-the-features)
-7. [Daily Usage](#daily-usage)
-8. [Troubleshooting](#troubleshooting)
+7. [**NEW: Tracking Your Portfolio**](#tracking-your-portfolio)
+8. [Daily Usage](#daily-usage)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -51,8 +52,22 @@ Think of it as your personal AI assistant for stock trading that:
 - ❌ NO programming experience needed!
 
 ### Money
-- **$0** - Everything is free!
-- (Later, if you want paid data, ~$10-50/month)
+
+**For Learning & Backtesting (Free)**:
+- ✅ Historical data via yfinance: **FREE**
+- ✅ Paper trading (simulated): **FREE**
+- ✅ Local LLM models: **FREE**
+- ✅ All software tools: **FREE**
+- **Total: ₹0/month**
+
+**For Live Trading (Paid)**:
+- 📊 Zerodha Kite Connect API: **₹2,000 one-time** (requires Zerodha account)
+- 📊 Dhan HQ API: **₹500-1,000/month** (based on plan)
+- 📊 Upstox API: **FREE** (requires Upstox account)
+- 📊 Real-time data feeds (optional): **$10-50/month**
+- **Total: ₹500-2,000/month** (after learning phase)
+
+**Recommendation**: Start with FREE options for 2-3 months. Only upgrade when confident.
 
 ---
 
@@ -559,9 +574,527 @@ The risk/reward is favorable: potential gain of ₹100 vs risk of ₹50 per shar
 
 ---
 
+## Tracking Your Portfolio
+
+**NEW FEATURE**: MLTR now tracks your actual trades and helps protect your portfolio!
+
+### What is Portfolio Tracking?
+
+Think of it as a **smart diary** that:
+- ✅ Remembers what signals the AI suggested
+- ✅ Tracks what you actually bought/sold
+- ✅ Warns you if a stock you own is falling fast
+- ✅ Helps the AI learn from your real results
+
+**Why this matters**: The AI can suggest "BUY", but did you actually buy? This feature bridges that gap.
+
+---
+
+### Setting Up Portfolio Tracking (5 minutes)
+
+#### Step 1: Enable Portfolio Tracking
+
+```bash
+# Create portfolio tracker
+python -c "
+from src.portfolio import PortfolioTracker
+tracker = PortfolioTracker(db_path='data/portfolio.db')
+print('✓ Portfolio tracker created!')
+"
+```
+
+You should see: `✓ Portfolio tracker created!`
+
+#### Step 2: Connect Your Broker (Optional but Recommended)
+
+**Option A: Automatic Sync (Zerodha, Upstox)**
+
+If you have Zerodha account:
+
+```bash
+# Interactive setup
+python scripts/setup_broker.py
+```
+
+Follow the prompts:
+1. Choose broker: `zerodha`
+2. Enter API key (from https://kite.trade)
+3. Enter access token
+4. Done! Your holdings will sync automatically
+
+**Option B: Manual Entry (Any Broker)**
+
+If your broker isn't supported or you prefer manual control:
+
+```python
+# Add a holding manually
+from src.portfolio import PortfolioTracker
+from datetime import datetime
+
+tracker = PortfolioTracker(db_path='data/portfolio.db')
+
+# Record what you bought
+tracker.record_trade(
+    symbol="RELIANCE",
+    trade_type="BUY",
+    price=2450.50,        # What you paid per share
+    quantity=100,         # How many shares
+    timestamp=datetime.now(),
+    commission=20.0,      # Brokerage fee
+    notes="First purchase"
+)
+
+print("✓ Trade recorded!")
+```
+
+**Option C: Import from CSV (Easiest for Bulk)**
+
+If you have existing holdings, create a CSV file:
+
+```csv
+symbol,quantity,avg_price
+RELIANCE,100,2450.50
+TCS,50,3200.00
+INFY,200,1445.00
+```
+
+Then import:
+
+```bash
+python -m src.cli portfolio import --holdings my_holdings.csv
+```
+
+---
+
+### How to Use Portfolio Tracking
+
+#### 1. Recording Signals and Trades
+
+**When AI suggests a trade**:
+
+```python
+from src.portfolio import PortfolioTracker
+from datetime import datetime
+
+tracker = PortfolioTracker(db_path='data/portfolio.db')
+
+# AI says "BUY RELIANCE"
+signal_id = tracker.record_signal(
+    symbol="RELIANCE",
+    signal_type="BUY",
+    price=2450.00,           # Price when signal generated
+    timestamp=datetime.now(),
+    confidence=0.85          # How confident AI is (0 to 1)
+)
+
+print(f"Signal recorded: ID {signal_id}")
+```
+
+**When you actually execute the trade**:
+
+```python
+# You bought it!
+tracker.record_trade(
+    symbol="RELIANCE",
+    trade_type="BUY",
+    price=2451.00,           # Actual execution price
+    quantity=100,
+    timestamp=datetime.now(),
+    signal_id=signal_id,     # Link to the signal
+    commission=20.0
+)
+
+print("✓ Trade recorded and linked to signal!")
+```
+
+**Why link them?** This tells the AI: "I followed your advice, let's see how it goes!"
+
+#### 2. Checking Your Holdings
+
+```python
+# What do I own right now?
+holdings = tracker.get_current_holdings()
+print(holdings)
+```
+
+Output:
+```
+   symbol  quantity  avg_price  current_price  market_value  unrealized_pnl
+0  RELIANCE    100    2450.50       2520.00     252000         6950.00
+1  TCS          50    3200.00       3180.00     159000        -1000.00
+2  INFY        200    1445.00       1460.00     292000         3000.00
+```
+
+**What this shows**:
+- You own 100 shares of RELIANCE, bought at avg ₹2450.50
+- Current price ₹2520, so you're up ₹6,950
+- TCS is down ₹1,000 (not good, watch this!)
+- Total portfolio: ₹703,000
+
+#### 3. Emergency Alerts (YOUR SAFETY NET!)
+
+**This is the most important feature** - it warns you when something dangerous is happening!
+
+```python
+from src.portfolio import EmergencyAlertSystem
+
+# Create alert system
+alerts = EmergencyAlertSystem()
+
+# Check your RELIANCE position
+alert = alerts.check_position(
+    symbol="RELIANCE",
+    current_price=2250,      # Stock dropped!
+    avg_price=2450,          # Your purchase price
+    quantity=100,
+    day_open=2400,           # Today's open
+    day_high=2420,
+    day_low=2240
+)
+
+if alert:
+    print(f"🚨 ALERT: {alert['message']}")
+    print(f"Action: {alert['action']}")
+```
+
+Output:
+```
+🚨 ALERT: RELIANCE down 8.2% from your average price!
+Action: Consider reviewing stop-loss. Current loss: ₹20,000
+```
+
+**What triggers alerts?**
+
+| Situation | Alert | What to Do |
+|-----------|-------|------------|
+| Stock down >5% today | 🚨 INTRADAY_DROP | Check news, consider exit |
+| Position loss >10% | ⚠️ POSITION_LOSS | Review stop-loss |
+| Hit stop-loss price | 🚨 STOP_LOSS_HIT | **EXIT IMMEDIATELY** |
+| Volume 3x normal | ⚡ VOLUME_SPIKE | Check for news |
+| Approaching circuit limit | 🚨 CIRCUIT_LIMIT | Exit difficult! Act now |
+| Portfolio down >15% | ⚠️ PORTFOLIO_DRAWDOWN | Reduce exposure |
+
+**Set up automatic alerts** (runs every hour during market):
+
+```bash
+# Add to your crontab (Linux/Mac)
+0 10-15 * * 1-5 python scripts/check_alerts.py
+
+# Or on Windows, use Task Scheduler
+```
+
+#### 4. Did You Follow the Signals?
+
+**Execution Rate** tells you: "What % of AI signals did I actually execute?"
+
+```python
+# Check last 30 days
+rate = tracker.get_execution_rate(days=30)
+print(f"You followed {rate*100:.1f}% of signals")
+```
+
+Output: `You followed 68.5% of signals`
+
+**What's a good rate?**
+- 80-100%: You trust the AI a lot (risky if AI is wrong!)
+- 50-70%: **Ideal** - You use judgment
+- <30%: Why run the AI if you ignore it?
+
+**See which signals you followed**:
+
+```python
+performance = tracker.get_signal_performance()
+print(performance.head(10))
+```
+
+Output:
+```
+   symbol  signal_type  signal_price  confidence  executed  execution_price  outcome
+0  RELIANCE  BUY         2450.00      0.85       True      2451.00         +5.2%
+1  TCS       SELL        3200.00      0.72       True      3198.00         +2.1%
+2  INFY      BUY         1445.00      0.68       False     -               +8.3% (MISSED)
+3  WIPRO     SELL        420.00       0.55       True      419.50          -1.5%
+```
+
+**Key insight**: You missed INFY which went up 8.3%! Maybe lower your confidence threshold.
+
+#### 5. Helping the AI Learn (Feedback Loop)
+
+**The magic part**: Your actual results teach the AI!
+
+```python
+# Generate feedback for a signal
+feedback = tracker.generate_ml_feedback(
+    symbol="RELIANCE",
+    signal_id=123
+)
+
+print(feedback)
+```
+
+Output:
+```python
+{
+    "symbol": "RELIANCE",
+    "signal_id": 123,
+    "followed": True,
+    "outcome": "PROFIT",
+    "return_pct": 5.2,
+    "recommendation": "Good trade! Model prediction was accurate."
+}
+```
+
+**How AI uses this**:
+
+| Your Result | AI Learns |
+|-------------|-----------|
+| ✅ Followed signal → Profit | "These features work! Use more." |
+| ❌ Followed signal → Loss | "These features failed. Use less." |
+| 🤔 Ignored signal → Would've profited | "Increase confidence threshold." |
+| 😅 Ignored signal → Would've lost | "Good! Model needs retraining." |
+
+**Run monthly feedback**:
+
+```bash
+# Analyze last 30 days and update models
+python scripts/generate_feedback.py --days 30
+```
+
+This creates a `ml_feedback.csv` that the AI uses to improve.
+
+---
+
+### Dashboard: See Everything in One Place
+
+The Streamlit dashboard shows your portfolio:
+
+```bash
+streamlit run src/dashboard/app.py
+```
+
+Navigate to **"My Portfolio"** tab:
+
+#### What you'll see:
+
+**1. Current Holdings**
+```
+Symbol    Qty   Avg Price  Current  P&L      P&L %    Action
+RELIANCE  100   ₹2,450    ₹2,520   +₹7,000  +2.9%    🟢 Hold
+TCS       50    ₹3,200    ₹3,180   -₹1,000  -0.6%    🟡 Watch
+INFY      200   ₹1,445    ₹1,460   +₹3,000  +1.0%    🟢 Hold
+```
+
+**2. Active Alerts** (last 24 hours)
+```
+🚨 CRITICAL - TCS approaching stop-loss!
+   Current: ₹3,180 | Stop-Loss: ₹3,168 (-1% away)
+   Action: Consider exiting position
+```
+
+**3. Signal Execution Summary**
+```
+Last 30 Days:
+- Signals generated: 24
+- Signals executed: 18 (75.0%)
+- Profitable trades: 13 (72.2%)
+- Average return: +3.4%
+```
+
+**4. Comparison Chart**
+- Blue line: If you followed ALL signals
+- Green line: Your actual performance
+- This shows if you're beating or lagging the AI
+
+---
+
+### Real-World Example: Full Workflow
+
+Let's walk through a complete day:
+
+**9:00 AM** - Before market opens
+
+```bash
+# Run daily analysis
+python scripts/daily_routine.py
+```
+
+Output:
+```
+📊 Today's Signals:
+1. BUY RELIANCE at ₹2,450 (Confidence: 85%)
+2. SELL TCS at ₹3,200 (Confidence: 72%)
+3. HOLD INFY (Confidence: 55%)
+
+🚨 Active Alerts:
+- No critical alerts
+
+✓ Ready for market open
+```
+
+**9:30 AM** - You decide to follow the RELIANCE signal
+
+In your broker app:
+- Buy 100 RELIANCE @ ₹2,451
+
+In MLTR:
+```python
+tracker.record_trade(
+    symbol="RELIANCE",
+    trade_type="BUY",
+    price=2451.00,
+    quantity=100,
+    timestamp=datetime.now(),
+    signal_id=get_today_signal_id("RELIANCE"),  # Links to AI's suggestion
+    commission=20.0
+)
+```
+
+**2:30 PM** - RELIANCE drops to ₹2,320
+
+Your phone buzzes (email/Telegram alert):
+```
+🚨 CRITICAL ALERT
+RELIANCE down 5.3% today!
+Current: ₹2,320
+Your avg: ₹2,451
+Loss: ₹13,100
+
+Action: Check news. Consider exit.
+```
+
+You check news:
+- "Reliance Q4 earnings miss estimates"
+
+Decision: Exit to limit losses
+
+```python
+tracker.record_trade(
+    symbol="RELIANCE",
+    trade_type="SELL",
+    price=2320.00,
+    quantity=100,
+    timestamp=datetime.now(),
+    notes="Exiting due to bad earnings"
+)
+```
+
+**End of Week** - Review performance
+
+```bash
+# Generate weekly report
+python scripts/weekly_report.py
+```
+
+Output:
+```
+📊 Week Summary:
+- Total trades: 8
+- Profitable: 5 (62.5%)
+- Average return: +1.2%
+- Portfolio value: ₹712,000 (+1.3%)
+
+💡 AI Feedback:
+- RELIANCE signal (loss): Earnings calendar not checked
+- INFY signal (ignored, went up 8%): Consider lowering confidence threshold
+- TCS signal (profit): Good exit timing
+
+✅ Action Items:
+1. Add earnings date filter to signals
+2. Lower confidence threshold from 0.7 to 0.6
+3. Review stop-loss strategy (too tight?)
+```
+
+**This feedback makes the AI smarter** for next week!
+
+---
+
+### Advanced: Broker Auto-Sync
+
+Once set up, your portfolio updates automatically:
+
+```yaml
+# In configs/config.yaml
+portfolio:
+  broker: zerodha
+  sync_frequency: hourly
+
+  alerts:
+    enabled: true
+    notifications:
+      - console
+      - email       # Your email
+      - telegram    # Telegram bot (optional)
+```
+
+Now every hour:
+1. MLTR fetches your latest holdings from Zerodha
+2. Checks for emergency situations
+3. Sends alerts if needed
+4. Updates dashboard
+
+**You do nothing!** It's all automatic.
+
+---
+
+### FAQ: Portfolio Tracking
+
+**Q: What if I trade with multiple brokers?**
+
+A: Import CSV from each broker and merge:
+
+```bash
+python -m src.cli portfolio import --holdings zerodha_holdings.csv
+python -m src.cli portfolio import --holdings upstox_holdings.csv --merge
+```
+
+**Q: Can I track non-Indian stocks (US, etc.)?**
+
+A: Yes! The tracker works with any symbol:
+
+```python
+tracker.record_trade(symbol="AAPL", ...)  # Apple
+tracker.record_trade(symbol="TSLA", ...)  # Tesla
+```
+
+**Q: What if I forgot to record a trade?**
+
+A: Add it retroactively:
+
+```python
+from datetime import datetime, timedelta
+
+# Trade from 3 days ago
+past_time = datetime.now() - timedelta(days=3)
+tracker.record_trade(
+    symbol="RELIANCE",
+    trade_type="BUY",
+    price=2450.00,
+    quantity=100,
+    timestamp=past_time  # Backdated
+)
+```
+
+**Q: How do I export my portfolio for taxes?**
+
+A:
+```bash
+# Export all trades to CSV
+python -m src.cli portfolio export --year 2025 --output trades_2025.csv
+```
+
+**Q: Does this track mutual funds / crypto?**
+
+A: Currently stocks only. Crypto support planned for v0.2.
+
+**Q: Is my portfolio data secure?**
+
+A: Yes! Stored locally in encrypted database. Never sent to cloud (unless you enable cloud backup).
+
+---
+
 ## Daily Usage
 
-Here's your typical daily workflow:
+Here's your typical daily workflow (updated with portfolio tracking):
 
 ### Morning Routine (5 minutes) - Before Market Opens (9:15 AM)
 
