@@ -1,0 +1,102 @@
+# Codecov Configuration
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        target: 70%              # Target overall coverage
+        threshold: 2%            # Allow 2% drop before failing
+        informational: false     # Fail CI if below threshold
+
+    patch:
+      default:
+        target: 80%              # New code should have higher coverage
+        threshold: 5%
+        informational: false
+
+  precision: 2
+  round: down
+  range: "60...100"
+
+comment:
+  layout: "reach,diff,flags,tree,files"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
+# Ignore certain files from coverage
+ignore:
+  - "tests/"
+  - "scripts/"
+  - "**/__init__.py"
+  - "**/conftest.py"
+  - "setup.py"
+  - "docs/"
+  - "notebooks/"
+
+# Flag configuration for different test types
+flags:
+  unittests:
+    paths:
+      - src/
+    carryforward: true
+
+  integration:
+    paths:
+      - src/
+    carryforward: true
+
+# Notifications (optional - configure for your team)
+# slack:
+#   default:
+#     url: "secret:slack-webhook"
+#     threshold: 1%
+#     only_pulls: true
+#     message: "Coverage changed by {{changed}} for {{owner}}/{{repo}}"
+
+# Component-specific coverage targets
+component_management:
+  individual_components:
+    # Data layer - critical, needs high coverage
+    - component_id: data
+      name: Data Layer
+      paths:
+        - src/data/**
+      target: 80%
+
+    # ML layer - critical, needs high coverage
+    - component_id: ml
+      name: ML Layer
+      paths:
+        - src/ml/**
+      target: 75%
+
+    # Signals - critical (risk management)
+    - component_id: signals
+      name: Signal Generation
+      paths:
+        - src/signals/**
+      target: 85%
+
+    # Features - important
+    - component_id: features
+      name: Feature Engineering
+      paths:
+        - src/features/**
+      target: 70%
+
+    # API - important
+    - component_id: api
+      name: API
+      paths:
+        - src/api/**
+      target: 70%
+
+    # Other modules - moderate
+    - component_id: other
+      name: Other
+      paths:
+        - src/**
+      target: 60%

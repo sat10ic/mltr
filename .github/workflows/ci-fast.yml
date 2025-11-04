@@ -1,0 +1,136 @@
+name: CI - Fast Checks
+
+on:
+  push:
+    branches: [ main, develop, claude/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-format:
+    name: Lint and Format
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff black isort mypy
+
+    - name: Run Ruff (Linter)
+      run: |
+        ruff check src/ tests/ --output-format=github
+      continue-on-error: false
+
+    - name: Check Black formatting
+      run: |
+        black --check src/ tests/
+
+    - name: Check isort
+      run: |
+        isort --check-only src/ tests/
+
+    - name: Run mypy (Type Checking)
+      run: |
+        mypy src/ --ignore-missing-imports --no-strict-optional
+      continue-on-error: true  # Make optional initially
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Run unit tests
+      run: |
+        pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  security-checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety detect-secrets
+
+    - name: Detect Secrets (FAIL ON DETECTION)
+      run: |
+        detect-secrets scan --baseline .secrets.baseline
+        detect-secrets audit .secrets.baseline
+      # This MUST fail the CI if secrets are found
+      continue-on-error: false
+
+    - name: Run Bandit (Security Linter)
+      run: |
+        bandit -r src/ -ll -f json -o bandit-report.json
+        bandit -r src/ -ll
+      continue-on-error: true
+
+    - name: Check dependencies for vulnerabilities
+      run: |
+        safety check --json || true
+        safety check
+      continue-on-error: true
+
+  smoke-test:
+    name: Smoke Test (Example Data)
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install core dependencies only
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas numpy pytest scikit-learn pyyaml
+
+    - name: Run smoke test script
+      run: |
+        bash scripts/run_example.sh
+      env:
+        PYTHONPATH: ${{ github.workspace }}
